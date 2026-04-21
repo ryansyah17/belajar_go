@@ -8,32 +8,31 @@ import (
 )
 
 type Handlers struct {
-	Auth *AuthHandler
-	User *UserHandler
-	// Phase berikutnya: Category, Product, dst
+	Auth     *AuthHandler
+	User     *UserHandler
+	Category *CategoryHandler
+	Product  *ProductHandler
 }
 
 func SetupRouter(r *gin.Engine, h *Handlers, jwtUtil *utils.JWTUtil) {
-	// Static files — untuk akses gambar upload
 	r.Static("/storage", "./storage")
 
 	api := r.Group("/api/v1")
 
-	// ── Public routes (tidak perlu token) ──────────────────────────
+	// ── Public ────────────────────────────────────────────────────
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", h.Auth.Register)
 		auth.POST("/login", h.Auth.Login)
 	}
 
-	// ── Protected routes (wajib token) ─────────────────────────────
+	// ── Protected ─────────────────────────────────────────────────
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(jwtUtil))
 	{
-		// Auth
 		protected.GET("/auth/me", h.Auth.Me)
 
-		// User management — hanya owner
+		// Users — owner only
 		users := protected.Group("/users")
 		users.Use(middleware.RoleMiddleware("owner"))
 		{
@@ -44,6 +43,27 @@ func SetupRouter(r *gin.Engine, h *Handlers, jwtUtil *utils.JWTUtil) {
 			users.DELETE("/:id", h.User.Delete)
 		}
 
-		// Phase berikutnya: tambah category, product, dst di sini
+		// Categories — owner & admin bisa kelola, cashier read-only
+		categories := protected.Group("/categories")
+		{
+			categories.GET("", h.Category.GetAll)
+			categories.GET("/:id", h.Category.GetByID)
+			// Write operations hanya owner & admin
+			categories.POST("", middleware.RoleMiddleware("owner", "admin"), h.Category.Create)
+			categories.PUT("/:id", middleware.RoleMiddleware("owner", "admin"), h.Category.Update)
+			categories.DELETE("/:id", middleware.RoleMiddleware("owner", "admin"), h.Category.Delete)
+		}
+
+		// Products — owner & admin kelola, cashier read-only
+		products := protected.Group("/products")
+		{
+			products.GET("", h.Product.GetAll)
+			products.GET("/low-stock", h.Product.GetLowStock)
+			products.GET("/:id", h.Product.GetByID)
+			products.POST("", middleware.RoleMiddleware("owner", "admin"), h.Product.Create)
+			products.PUT("/:id", middleware.RoleMiddleware("owner", "admin"), h.Product.Update)
+			products.POST("/:id/image", middleware.RoleMiddleware("owner", "admin"), h.Product.UploadImage)
+			products.DELETE("/:id", middleware.RoleMiddleware("owner", "admin"), h.Product.Delete)
+		}
 	}
 }

@@ -17,10 +17,8 @@ import (
 
 func main() {
 	config.LoadEnv()
-
 	db := config.InitDB()
 
-	// Auto migrate
 	err := db.AutoMigrate(
 		&domain.User{},
 		&domain.Category{},
@@ -34,7 +32,7 @@ func main() {
 	}
 	log.Println("Database migration completed")
 
-	// ── Inisialisasi JWT Util ──────────────────────────────────────
+	// JWT
 	jwtSecret := os.Getenv("JWT_SECRET")
 	jwtExpire, _ := strconv.Atoi(os.Getenv("JWT_EXPIRES_HOUR"))
 	if jwtExpire == 0 {
@@ -42,30 +40,34 @@ func main() {
 	}
 	jwtUtil := utils.NewJWTUtil(jwtSecret, jwtExpire)
 
-	// ── Dependency Injection ───────────────────────────────────────
-	// Layer order: Repository → Usecase → Handler
+	// ── Repositories ──────────────────────────────────────────────
+	userRepo     := repository.NewUserRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
+	productRepo  := repository.NewProductRepository(db)
 
-	// Auth
-	userRepo    := repository.NewUserRepository(db)
-	authUsecase := usecase.NewAuthUsecase(userRepo, jwtUtil)
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	// ── Usecases ──────────────────────────────────────────────────
+	authUsecase     := usecase.NewAuthUsecase(userRepo, jwtUtil)
+	userUsecase     := usecase.NewUserUsecase(userRepo)
+	categoryUsecase := usecase.NewCategoryUsecase(categoryRepo)
+	productUsecase  := usecase.NewProductUsecase(productRepo, categoryRepo)
 
-	// Handlers
+	// ── Handlers ──────────────────────────────────────────────────
 	handlers := &handler.Handlers{
-		Auth: handler.NewAuthHandler(authUsecase),
-		User: handler.NewUserHandler(userUsecase),
+		Auth:     handler.NewAuthHandler(authUsecase),
+		User:     handler.NewUserHandler(userUsecase),
+		Category: handler.NewCategoryHandler(categoryUsecase),
+		Product:  handler.NewProductHandler(productUsecase),
 	}
 
-	// ── Setup Gin ─────────────────────────────────────────────────
+	// ── Gin ───────────────────────────────────────────────────────
 	cfg := config.GetAppConfig()
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.Default()
-
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok", "message": "POS UMKM API running"})
+		c.JSON(200, gin.H{"status": "ok"})
 	})
 
 	handler.SetupRouter(r, handlers, jwtUtil)
