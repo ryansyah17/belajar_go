@@ -9,10 +9,10 @@ import (
 type Expense struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	UserID      uint           `json:"user_id" gorm:"not null"`
-	Name        string         `json:"name" gorm:"not null"`
-	Category    string         `json:"category" gorm:"not null"` // operasional, bahan baku, dll
+	Name        string         `json:"name" gorm:"not null;size:200"`
+	Category    string         `json:"category" gorm:"not null;size:100"`
 	Amount      float64        `json:"amount" gorm:"not null"`
-	Description string         `json:"description"`
+	Description string         `json:"description" gorm:"size:500"`
 	Date        time.Time      `json:"date" gorm:"not null"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`

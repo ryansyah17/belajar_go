@@ -8,13 +8,12 @@ import (
 
 type Category struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
-	Name        string         `json:"name" gorm:"not null;uniqueIndex"`
-	Description string         `json:"description"`
+	Name        string         `json:"name" gorm:"not null;uniqueIndex;size:100"`
+	Description string         `json:"description" gorm:"size:500"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 
-	// Relasi — akan diisi GORM saat query dengan Preload
 	Products []Product `json:"products,omitempty" gorm:"foreignKey:CategoryID"`
 }
 

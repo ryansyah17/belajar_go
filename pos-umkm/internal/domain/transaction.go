@@ -15,19 +15,19 @@ const (
 )
 
 type Transaction struct {
-	ID            uint           `json:"id" gorm:"primaryKey"`
-	UserID        uint           `json:"user_id"`
-	InvoiceNumber string         `json:"invoice_number" gorm:"uniqueIndex;not null"`
-	TotalAmount   float64        `json:"total_amount"`
-	DiscountAmount float64       `json:"discount_amount" gorm:"default:0"`
-	FinalAmount   float64        `json:"final_amount"`
-	PaymentMethod PaymentMethod  `json:"payment_method" gorm:"type:enum('cash','transfer','qris')"`
-	PaidAmount    float64        `json:"paid_amount"`
-	ChangeAmount  float64        `json:"change_amount"`
-	Notes         string         `json:"notes"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index"`
+	ID             uint           `json:"id" gorm:"primaryKey"`
+	UserID         uint           `json:"user_id"`
+	InvoiceNumber  string         `json:"invoice_number" gorm:"uniqueIndex;not null;size:50"`
+	TotalAmount    float64        `json:"total_amount"`
+	DiscountAmount float64        `json:"discount_amount" gorm:"default:0"`
+	FinalAmount    float64        `json:"final_amount"`
+	PaymentMethod  PaymentMethod  `json:"payment_method" gorm:"type:enum('cash','transfer','qris')"`
+	PaidAmount     float64        `json:"paid_amount"`
+	ChangeAmount   float64        `json:"change_amount"`
+	Notes          string         `json:"notes" gorm:"size:500"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `json:"-" gorm:"index"`
 
 	User  User              `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Items []TransactionItem `json:"items" gorm:"foreignKey:TransactionID"`
@@ -37,8 +37,8 @@ type TransactionItem struct {
 	ID            uint    `json:"id" gorm:"primaryKey"`
 	TransactionID uint    `json:"transaction_id"`
 	ProductID     uint    `json:"product_id"`
-	ProductName   string  `json:"product_name"` // snapshot nama saat transaksi
-	Price         float64 `json:"price"`         // snapshot harga saat transaksi
+	ProductName   string  `json:"product_name" gorm:"size:200"`
+	Price         float64 `json:"price"`
 	Quantity      int     `json:"quantity"`
 	Subtotal      float64 `json:"subtotal"`
 

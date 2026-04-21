@@ -9,13 +9,13 @@ import (
 type Product struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	CategoryID  uint           `json:"category_id" gorm:"not null"`
-	Name        string         `json:"name" gorm:"not null"`
-	Description string         `json:"description"`
+	Name        string         `json:"name" gorm:"not null;size:200"`
+	Description string         `json:"description" gorm:"size:1000"`
 	Price       float64        `json:"price" gorm:"not null"`
 	Stock       int            `json:"stock" gorm:"default:0"`
-	MinStock    int            `json:"min_stock" gorm:"default:5"` // untuk low stock alert
-	Unit        string         `json:"unit" gorm:"default:'pcs'"`
-	ImageURL    string         `json:"image_url"`
+	MinStock    int            `json:"min_stock" gorm:"default:5"`
+	Unit        string         `json:"unit" gorm:"default:'pcs';size:50"`
+	ImageURL    string         `json:"image_url" gorm:"size:500"`
 	IsActive    bool           `json:"is_active" gorm:"default:true"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
